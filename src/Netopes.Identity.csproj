@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <OutputType>Library</OutputType>
+    <PackageId>NETopes.Identity</PackageId>
+    <PackageTags>netopes,identity</PackageTags>
+    <Title>NETopes Identity</Title>
+    <Description>NETopes ASP.NET Core framework Identity package</Description>
+    <Product>NETopes Identity</Product>
+    <Company>AdeoTEK Software SRL</Company>
+    <Authors>George Benjamin-Schonberger</Authors>
+    <Copyright>Copyright © AdeoTEK Software SRL 2021</Copyright>
+    <AssemblyVersion>1.0.0.7</AssemblyVersion>
+    <FileVersion>1.0.0.7</FileVersion>
+    <Version>1.0.0</Version>
+    <PackageProjectUrl>https://github.com/adeotek/dotnet.netopes.identity/</PackageProjectUrl>
+    <PackageLicense>https://github.com/adeotek/dotnet.netopes.identity/blob/main/README.md</PackageLicense>
+    <RepositoryUrl>https://github.com/adeotek/dotnet.netopes.identity/</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageIcon>PackageIcon.png</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageVersion>1.0.0-beta.1</PackageVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.0.35" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.0-rc.2.20475.17" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="5.0.0-rc.2.20475.17" />
+    <PackageReference Include="NETopes.Core.Helpers" Version="1.0.0-beta.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.0-beta-20204-02" PrivateAssets="all">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../LICENSE">
+      <Pack>True</Pack>
+      <PackagePath>/</PackagePath>
+    </None>
+    <None Include="../assets/PackageIcon.png">
+      <Pack>True</Pack>
+      <PackagePath>/</PackagePath>
+    </None>
+  </ItemGroup>
+  
+</Project>
