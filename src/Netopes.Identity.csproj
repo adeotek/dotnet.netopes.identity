@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <PackageId>NETopes.Identity</PackageId>
+    <PackageId>Netopes.Identity</PackageId>
     <PackageTags>netopes,identity</PackageTags>
     <Title>NETopes Identity</Title>
     <Description>NETopes ASP.NET Core framework Identity package</Description>
