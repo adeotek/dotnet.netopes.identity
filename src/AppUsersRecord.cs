@@ -178,7 +178,7 @@ namespace Netopes.Identity
                 $"{CN("Email")} = @Email, " +
                 $"{CN("FirstName")} = @FirstName, " +
                 $"{CN("LastName")} = @LastName, " +
-                $"{CN("UserName")} = @UserName, " +
+                $"{CN("Username")} = @UserName, " +
                 $"{CN("NormalizedUsername")} = @NormalizedUserName, " +
                 $"{CN("PasswordHash")} = @PasswordHash, " +
                 $"{CN("CultureInfo")} = @CultureInfo, " +
@@ -197,21 +197,24 @@ namespace Netopes.Identity
             using var transaction = DbConnection.BeginTransaction();
             await DbConnection.ExecuteAsync(updateUserSql, new
             {
+                user.Email,
+                user.FirstName,
+                user.LastName,
                 user.UserName,
                 user.NormalizedUserName,
-                user.Email,
-                user.NormalizedEmail,
-                user.EmailConfirmed,
                 user.PasswordHash,
+                user.CultureInfo,
+                user.State,
+                user.EmailConfirmed,
                 user.SecurityStamp,
                 user.ConcurrencyStamp,
                 user.PhoneNumber,
                 user.PhoneNumberConfirmed,
                 user.TwoFactorEnabled,
-                user.LockoutEnd,
+                LockoutEnd = user.LockoutEndForDb,
                 user.LockoutEnabled,
                 user.AccessFailedCount,
-                Id = user.Id.ToString()
+                user.Id
             }, transaction);
 
             if (claims?.Count > 0)
@@ -219,13 +222,13 @@ namespace Netopes.Identity
                 var deleteClaimsSql = "delete " +
                                                $"from {TN("UserClaims")} " +
                                                $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteClaimsSql, new { UserId = user.Id }, transaction);
+                await DbConnection.ExecuteAsync(deleteClaimsSql, new { UserId = user.Id.ToString() }, transaction);
                 var insertClaimsSql =
                     $"insert into {TN("UserClaims")} ({CN("UserId")}, {CN("ClaimType")}, {CN("ClaimValue")}) " +
                     $"values ({GID("UserId")}, @ClaimType, @ClaimValue);";
                 await DbConnection.ExecuteAsync(insertClaimsSql, claims.Select(x => new
                 {
-                    UserId = user.Id.ToString(),
+                    UserId = user.Id,
                     x.ClaimType,
                     x.ClaimValue
                 }), transaction);
@@ -241,8 +244,8 @@ namespace Netopes.Identity
                                               $"values ({GID("UserId")}, {GID("RoleId")});";
                 await DbConnection.ExecuteAsync(insertRolesSql, roles.Select(x => new
                 {
-                    UserId = user.Id.ToString(),
-                    RoleId = x.RoleId.ToString()
+                    UserId = user.Id,
+                    x.RoleId
                 }), transaction);
             }
 
@@ -260,7 +263,7 @@ namespace Netopes.Identity
                     x.LoginProvider,
                     x.ProviderKey,
                     x.ProviderDisplayName,
-                    UserId = user.Id.ToString()
+                    UserId = user.Id
                 }), transaction);
             }
 
@@ -269,13 +272,13 @@ namespace Netopes.Identity
                 var deleteTokensSql = "delete " +
                                                $"from {TN("UserTokens")} " +
                                                $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteTokensSql, new { UserId = user.Id.ToString() }, transaction);
+                await DbConnection.ExecuteAsync(deleteTokensSql, new { UserId = user.Id }, transaction);
                 var insertTokensSql =
                     $"insert into {TN("UserTokens")} ({CN("UserId")}, {CN("LoginProvider")}, {CN("Name")}, {CN("Value")}) " +
                     $"values ({GID("UserId")}, @LoginProvider, @Name, @Value);";
                 await DbConnection.ExecuteAsync(insertTokensSql, tokens.Select(x => new
                 {
-                    UserId = x.UserId.ToString(),
+                    x.UserId,
                     x.LoginProvider,
                     x.Name,
                     x.Value
