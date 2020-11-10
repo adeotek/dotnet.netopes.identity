@@ -11,7 +11,7 @@ namespace Netopes.Identity
         [PersonalData]
         public string LastName { get; set; }
         // Entity specific data
-        public Guid EntityId { get; set; }
+        public Guid AccountId { get; set; }
         public Guid CountryId { get; set; }
         public string CompanyName { get; set; }
         public string TaxCode { get; set; }
@@ -24,6 +24,8 @@ namespace Netopes.Identity
         // User specific data
         public string CultureInfo { get; set; }
         public int State { get; set; }
+        public int DebugMode { get; set; }
+        public int IsMasterAccount { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LockoutEndForDb => LockoutEnd?.DateTime;
 
@@ -32,6 +34,8 @@ namespace Netopes.Identity
             Id = Guid.NewGuid();
             EntityState = -1;
             State = -1;
+            DebugMode = 0;
+            IsMasterAccount = 0;
             CreatedAt = DateTime.Now;
         }
     }

@@ -20,22 +20,22 @@ namespace Netopes.Identity
         {
             _logger = logger;
             _selectSql = $"select u.*, " +
-                    $"e.{CN("CountryId")}, " +
-                    $"e.{CN("CompanyName")}, " +
-                    $"e.{CN("TaxCode")}, " +
-                    $"e.{CN("City")}, " +
-                    $"e.{CN("StreetAddress")}, " +
-                    $"e.{CN("AddressDetails")}, " +
-                    $"e.{CN("PostalCode")}, " +
-                    $"e.{CN("PhoneNumber")}, " +
-                    $"e.{CN("State")} as EntityState " +
+                    $"a.{CN("CountryId")}, " +
+                    $"a.{CN("CompanyName")}, " +
+                    $"a.{CN("TaxCode")}, " +
+                    $"a.{CN("City")}, " +
+                    $"a.{CN("StreetAddress")}, " +
+                    $"a.{CN("AddressDetails")}, " +
+                    $"a.{CN("PostalCode")}, " +
+                    $"a.{CN("PhoneNumber")}, " +
+                    $"a.{CN("State")} as EntityState " +
                     $"from {TN("Users")} u " +
-                    $"inner join {TN("Entities")} e on u.{CN("EntityId")} = e.{CN("Id")} ";
+                    $"inner join {TN("Accounts")} a on u.{CN("AccountId")} = a.{CN("Id")} ";
         }
 
         public override async Task<bool> CreateAsync(AppIdentityUser user)
         {
-            var createEntitySql = $"insert into {TN("Entities")} (" +
+            var createEntitySql = $"insert into {TN("Accounts")} (" +
                 $"{CN("Id")}, " +
                 $"{CN("CountryId")}, " +
                 $"{CN("Email")}," +
@@ -48,11 +48,12 @@ namespace Netopes.Identity
                 $"{CN("PostalCode")}, " +
                 $"{CN("PhoneNumber")}, " +
                 $"{CN("State")}) " +
+                $"{CN("IsMaster")}) " +
                 $"values ({GID("Id")}, {GID("CountryId")}, " +
                 "@Email, @CompanyName, @TaxCode, @Region, @City, @StreetAddress, @AddressDetails, @PostalCode, @PhoneNumber, @State);";
             var createEntityParams = new
             {
-                Id = user.EntityId.ToString(),
+                Id = user.AccountId.ToString(),
                 CountryId = user.CountryId.ToString(),
                 user.Email,
                 user.CompanyName,
@@ -63,12 +64,13 @@ namespace Netopes.Identity
                 user.AddressDetails,
                 user.PostalCode,
                 user.PhoneNumber,
-                user.State
+                user.State,
+                user.IsMasterAccount
             };
 
             var createUserSql = $"insert into {TN("Users")} ( " +
                 $"{CN("Id")}, " +
-                $"{CN("EntityId")}, " +
+                $"{CN("AccountId")}, " +
                 $"{CN("Email")}, " +
                 $"{CN("FirstName")}, " +
                 $"{CN("LastName")}, " +
@@ -77,6 +79,7 @@ namespace Netopes.Identity
                 $"{CN("PasswordHash")}, " +
                 $"{CN("CultureInfo")}, " +
                 $"{CN("State")}, " +
+                $"{CN("DebugMode")}, " +
                 $"{CN("EmailConfirmed")}, " +
                 $"{CN("SecurityStamp")}, " +
                 $"{CN("ConcurrencyStamp")}, " +
@@ -86,14 +89,14 @@ namespace Netopes.Identity
                 $"{CN("LockoutEnd")}, " +
                 $"{CN("LockoutEnabled")}, " +
                 $"{CN("AccessFailedCount")}) " +
-                $"select first 1 {GID("Id")}, {GID("EntityId")}, @Email, @FirstName, @LastName, @UserName, @NormalizedUserName, @PasswordHash, " +
+                $"select first 1 {GID("Id")}, {GID("AccountId")}, @Email, @FirstName, @LastName, @UserName, @NormalizedUserName, @PasswordHash, " +
                 $"coalesce(@CultureInfo,(case when c.{CN("Code2")} = 'RO' then 'ro' else 'en' end)), " +
                 "@State, @EmailConfirmed, @SecurityStamp, @ConcurrencyStamp, @PhoneNumber, @PhoneNumberConfirmed, @TwoFactorEnabled, @LockoutEnd, @LockoutEnabled, @AccessFailedCount " +
                 $"from {TN("Countries")} c where c.{CN("Id")} = {GID("CountryId")};";
             var createUserParams = new
             {
                 Id = user.Id.ToString(),
-                EntityId = user.EntityId.ToString(),
+                EntityId = user.AccountId.ToString(),
                 user.Email,
                 user.FirstName,
                 user.LastName,
@@ -102,6 +105,7 @@ namespace Netopes.Identity
                 user.PasswordHash,
                 user.CultureInfo,
                 user.State,
+                user.DebugMode,
                 user.EmailConfirmed,
                 user.SecurityStamp,
                 user.ConcurrencyStamp,
@@ -178,7 +182,7 @@ namespace Netopes.Identity
                 $"{CN("Email")} = @Email, " +
                 $"{CN("FirstName")} = @FirstName, " +
                 $"{CN("LastName")} = @LastName, " +
-                $"{CN("UserName")} = @UserName, " +
+                $"{CN("Username")} = @UserName, " +
                 $"{CN("NormalizedUsername")} = @NormalizedUserName, " +
                 $"{CN("PasswordHash")} = @PasswordHash, " +
                 $"{CN("CultureInfo")} = @CultureInfo, " +
@@ -197,21 +201,24 @@ namespace Netopes.Identity
             using var transaction = DbConnection.BeginTransaction();
             await DbConnection.ExecuteAsync(updateUserSql, new
             {
+                user.Email,
+                user.FirstName,
+                user.LastName,
                 user.UserName,
                 user.NormalizedUserName,
-                user.Email,
-                user.NormalizedEmail,
-                user.EmailConfirmed,
                 user.PasswordHash,
+                user.CultureInfo,
+                user.State,
+                user.EmailConfirmed,
                 user.SecurityStamp,
                 user.ConcurrencyStamp,
                 user.PhoneNumber,
                 user.PhoneNumberConfirmed,
                 user.TwoFactorEnabled,
-                user.LockoutEnd,
+                LockoutEnd = user.LockoutEndForDb,
                 user.LockoutEnabled,
                 user.AccessFailedCount,
-                Id = user.Id.ToString()
+                user.Id
             }, transaction);
 
             if (claims?.Count > 0)
@@ -219,13 +226,13 @@ namespace Netopes.Identity
                 var deleteClaimsSql = "delete " +
                                                $"from {TN("UserClaims")} " +
                                                $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteClaimsSql, new { UserId = user.Id }, transaction);
+                await DbConnection.ExecuteAsync(deleteClaimsSql, new { UserId = user.Id.ToString() }, transaction);
                 var insertClaimsSql =
                     $"insert into {TN("UserClaims")} ({CN("UserId")}, {CN("ClaimType")}, {CN("ClaimValue")}) " +
                     $"values ({GID("UserId")}, @ClaimType, @ClaimValue);";
                 await DbConnection.ExecuteAsync(insertClaimsSql, claims.Select(x => new
                 {
-                    UserId = user.Id.ToString(),
+                    UserId = user.Id,
                     x.ClaimType,
                     x.ClaimValue
                 }), transaction);
@@ -241,8 +248,8 @@ namespace Netopes.Identity
                                               $"values ({GID("UserId")}, {GID("RoleId")});";
                 await DbConnection.ExecuteAsync(insertRolesSql, roles.Select(x => new
                 {
-                    UserId = user.Id.ToString(),
-                    RoleId = x.RoleId.ToString()
+                    UserId = user.Id,
+                    x.RoleId
                 }), transaction);
             }
 
@@ -260,7 +267,7 @@ namespace Netopes.Identity
                     x.LoginProvider,
                     x.ProviderKey,
                     x.ProviderDisplayName,
-                    UserId = user.Id.ToString()
+                    UserId = user.Id
                 }), transaction);
             }
 
@@ -269,13 +276,13 @@ namespace Netopes.Identity
                 var deleteTokensSql = "delete " +
                                                $"from {TN("UserTokens")} " +
                                                $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteTokensSql, new { UserId = user.Id.ToString() }, transaction);
+                await DbConnection.ExecuteAsync(deleteTokensSql, new { UserId = user.Id }, transaction);
                 var insertTokensSql =
                     $"insert into {TN("UserTokens")} ({CN("UserId")}, {CN("LoginProvider")}, {CN("Name")}, {CN("Value")}) " +
                     $"values ({GID("UserId")}, @LoginProvider, @Name, @Value);";
                 await DbConnection.ExecuteAsync(insertTokensSql, tokens.Select(x => new
                 {
-                    UserId = x.UserId.ToString(),
+                    x.UserId,
                     x.LoginProvider,
                     x.Name,
                     x.Value
