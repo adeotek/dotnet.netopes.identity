@@ -22,15 +22,8 @@ namespace Netopes.Identity
         
         public override async Task LoadStateAsync()
         {
-            if (await GetAuthenticationStateAsync())
-            {
-                await LoadUserContextAsync();
-            }
-            else
-            {
-                CurrentIdentityUser = null;
-            }
-            
+            await GetAuthenticationStateAsync();
+            await LoadUserContextAsync();
             IsInitialized = true;
         }
 
@@ -39,6 +32,7 @@ namespace Netopes.Identity
             var authState = await _authenticationStateProvider.GetAuthenticationStateAsync();
             if ((authState?.User?.Identity?.IsAuthenticated ?? false) == false)
             {
+                CurrentIdentityUser = null;
                 return false;
             }
 
