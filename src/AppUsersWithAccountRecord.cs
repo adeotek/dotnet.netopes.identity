@@ -11,44 +11,92 @@ using Netopes.Identity.Data;
 
 namespace Netopes.Identity
 {
-    public class AppUsersRecord : UsersRecord<AppIdentityUser, Guid, IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>, IdentityUserToken<Guid>>
+    public class AppUsersWithAccountRecord : UsersRecord<AppIdentityUserWithAccount, Guid, IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>, IdentityUserToken<Guid>>
     {
-        private readonly ILogger<AppUsersRecord> _logger;
+        private readonly ILogger<AppUsersWithAccountRecord> _logger;
         private readonly string _selectSql;
 
-        public AppUsersRecord(IDbConnectionFactory dbConnectionFactory, ILogger<AppUsersRecord> logger) : base(dbConnectionFactory)
+        public AppUsersWithAccountRecord(IDbConnectionFactory dbConnectionFactory, ILogger<AppUsersWithAccountRecord> logger) : base(dbConnectionFactory)
         {
             _logger = logger;
-            _selectSql = $"select u.* from {TN("Users")} u ";
+            _selectSql = $"select u.*, " +
+                    $"a.{CN("CountryId")}, " +
+                    $"a.{CN("CompanyName")}, " +
+                    $"a.{CN("TaxCode")}, " +
+                    $"a.{CN("City")}, " +
+                    $"a.{CN("StreetAddress")}, " +
+                    $"a.{CN("AddressDetails")}, " +
+                    $"a.{CN("PostalCode")}, " +
+                    $"a.{CN("PhoneNumber")}, " +
+                    $"a.{CN("State")} as EntityState " +
+                    $"from {TN("Users")} u " +
+                    $"inner join {TN("Accounts")} a on u.{CN("AccountId")} = a.{CN("Id")} ";
         }
 
-        public override async Task<bool> CreateAsync(AppIdentityUser user)
+        public override async Task<bool> CreateAsync(AppIdentityUserWithAccount user)
         {
+            var createEntitySql = $"insert into {TN("Accounts")} (" +
+                $"{CN("Id")}, " +
+                $"{CN("CountryId")}, " +
+                $"{CN("Email")}," +
+                $"{CN("CompanyName")}, " +
+                $"{CN("TaxCode")}, " +
+                $"{CN("Region")}, " +
+                $"{CN("City")}," +
+                $"{CN("StreetAddress")}, " +
+                $"{CN("AddressDetails")}, " +
+                $"{CN("PostalCode")}, " +
+                $"{CN("PhoneNumber")}, " +
+                $"{CN("State")}) " +
+                $"{CN("IsMaster")}) " +
+                $"values ({GID("Id")}, {GID("CountryId")}, " +
+                "@Email, @CompanyName, @TaxCode, @Region, @City, @StreetAddress, @AddressDetails, @PostalCode, @PhoneNumber, @State);";
+            var createEntityParams = new
+            {
+                Id = user.AccountId.ToString(),
+                CountryId = user.CountryId.ToString(),
+                user.Email,
+                user.CompanyName,
+                user.TaxCode,
+                user.Region,
+                user.City,
+                user.StreetAddress,
+                user.AddressDetails,
+                user.PostalCode,
+                user.PhoneNumber,
+                user.State,
+                user.IsMasterAccount
+            };
+
             var createUserSql = $"insert into {TN("Users")} ( " +
-                                $"{CN("Id")}, " +
-                                $"{CN("Email")}, " +
-                                $"{CN("FirstName")}, " +
-                                $"{CN("LastName")}, " +
-                                $"{CN("Username")}, " +
-                                $"{CN("NormalizedUsername")}, " +
-                                $"{CN("PasswordHash")}, " +
-                                $"{CN("CultureInfo")}, " +
-                                $"{CN("State")}, " +
-                                $"{CN("EmailConfirmed")}, " +
-                                $"{CN("SecurityStamp")}, " +
-                                $"{CN("ConcurrencyStamp")}, " +
-                                $"{CN("PhoneNumber")}, " +
-                                $"{CN("PhoneNumberConfirmed")}, " +
-                                $"{CN("TwoFactorEnabled")}, " +
-                                $"{CN("LockoutEnd")}, " +
-                                $"{CN("LockoutEnabled")}, " +
-                                $"{CN("AccessFailedCount")}) " +
-                                $"values ({GID("Id")}, @Email, @FirstName, @LastName, @UserName, @NormalizedUserName, @PasswordHash, " +
-                                $"coalesce(@CultureInfo,(case when c.{CN("Code2")} = 'RO' then 'ro' else 'en' end)), " +
-                                "@State, @EmailConfirmed, @SecurityStamp, @ConcurrencyStamp, @PhoneNumber, @PhoneNumberConfirmed, @TwoFactorEnabled, @LockoutEnd, @LockoutEnabled, @AccessFailedCount)";
+                $"{CN("Id")}, " +
+                $"{CN("AccountId")}, " +
+                $"{CN("Email")}, " +
+                $"{CN("FirstName")}, " +
+                $"{CN("LastName")}, " +
+                $"{CN("Username")}, " +
+                $"{CN("NormalizedUsername")}, " +
+                $"{CN("PasswordHash")}, " +
+                $"{CN("CultureInfo")}, " +
+                $"{CN("State")}, " +
+                $"{CN("DebugMode")}, " +
+                $"{CN("EmailConfirmed")}, " +
+                $"{CN("SecurityStamp")}, " +
+                $"{CN("ConcurrencyStamp")}, " +
+                $"{CN("PhoneNumber")}, " +
+                $"{CN("PhoneNumberConfirmed")}, " +
+                $"{CN("TwoFactorEnabled")}, " +
+                $"{CN("LockoutEnd")}, " +
+                $"{CN("LockoutEnabled")}, " +
+                $"{CN("AccessFailedCount")}) " +
+                $"select first 1 {GID("Id")}, {GID("AccountId")}, @Email, @FirstName, @LastName, @UserName, @NormalizedUserName, @PasswordHash, " +
+                $"coalesce(@CultureInfo,(case when c.{CN("Code2")} = 'RO' then 'ro' else 'en' end)), " +
+                "@State, @EmailConfirmed, @SecurityStamp, @ConcurrencyStamp, @PhoneNumber, @PhoneNumberConfirmed, @TwoFactorEnabled, @LockoutEnd, @LockoutEnabled, @AccessFailedCount " +
+                $"from {TN("Countries")} c where c.{CN("Id")} = {GID("CountryId")};";
             var createUserParams = new
             {
                 Id = user.Id.ToString(),
+                EntityId = user.AccountId.ToString(),
                 user.Email,
                 user.FirstName,
                 user.LastName,
@@ -57,25 +105,32 @@ namespace Netopes.Identity
                 user.PasswordHash,
                 user.CultureInfo,
                 user.State,
+                user.DebugMode,
                 user.EmailConfirmed,
                 user.SecurityStamp,
                 user.ConcurrencyStamp,
                 user.PhoneNumber,
                 user.PhoneNumberConfirmed,
                 user.TwoFactorEnabled,
-                LockoutEnd = user.LockoutEnd?.DateTime,
+                LockoutEnd = user.LockoutEndForDb,
                 user.LockoutEnabled,
-                user.AccessFailedCount
+                user.AccessFailedCount,
+                CountryId = user.CountryId.ToString()
             };
 
+            using var transaction = DbConnection.BeginTransaction();
             try
             {
-                await DbConnection.ExecuteAsync(createUserSql, createUserParams);
+                await DbConnection.ExecuteAsync(createEntitySql, createEntityParams, transaction);
+                await DbConnection.ExecuteAsync(createUserSql, createUserParams, transaction);
+
+                transaction.Commit();
                 return true;
             }
             catch (Exception e)
             {
                 _logger?.LogError(e, "Unable to create new user");
+                transaction.Rollback();
                 return false;
             }
         }
@@ -91,36 +146,36 @@ namespace Netopes.Identity
         }
 
         /// <inheritdoc />
-        public override async Task<AppIdentityUser> FindByIdAsync(Guid userId)
+        public override async Task<AppIdentityUserWithAccount> FindByIdAsync(Guid userId)
         {
             var sql = _selectSql + 
                 $"where u.{CN("Id")} = {GID("Id")};";
-            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUser>(sql, new { Id = userId.ToString() });
+            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql, new { Id = userId.ToString() });
             return user;
         }
 
         /// <inheritdoc />
-        public override async Task<AppIdentityUser> FindByNameAsync(string normalizedUserName)
+        public override async Task<AppIdentityUserWithAccount> FindByNameAsync(string normalizedUserName)
         {
             var sql = _selectSql + 
                 $"where u.{CN("NormalizedUsername")} = @NormalizedUserName;";
-            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUser>(sql,
+            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql,
                 new { NormalizedUserName = normalizedUserName });
             return user;
         }
 
         /// <inheritdoc />
-        public override async Task<AppIdentityUser> FindByEmailAsync(string normalizedEmail)
+        public override async Task<AppIdentityUserWithAccount> FindByEmailAsync(string normalizedEmail)
         {
             var sql = _selectSql +
                 $"where u.{CN("Email")} = @NormalizedEmail;";
-            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUser>(sql,
+            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql,
                 new { NormalizedEmail = normalizedEmail });
             return user;
         }
 
         /// <inheritdoc />
-        public override async Task<bool> UpdateAsync(AppIdentityUser user, IList<IdentityUserClaim<Guid>> claims, IList<IdentityUserRole<Guid>> roles, IList<IdentityUserLogin<Guid>> logins, IList<IdentityUserToken<Guid>> tokens)
+        public override async Task<bool> UpdateAsync(AppIdentityUserWithAccount user, IList<IdentityUserClaim<Guid>> claims, IList<IdentityUserRole<Guid>> roles, IList<IdentityUserLogin<Guid>> logins, IList<IdentityUserToken<Guid>> tokens)
         {
             var updateUserSql =
                 $"update {TN("Users")} set " +
@@ -160,7 +215,7 @@ namespace Netopes.Identity
                 user.PhoneNumber,
                 user.PhoneNumberConfirmed,
                 user.TwoFactorEnabled,
-                LockoutEnd = user.LockoutEnd?.DateTime,
+                LockoutEnd = user.LockoutEndForDb,
                 user.LockoutEnabled,
                 user.AccessFailedCount,
                 user.Id
@@ -248,23 +303,23 @@ namespace Netopes.Identity
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<AppIdentityUser>> GetUsersInRoleAsync(string roleName)
+        public override async Task<IEnumerable<AppIdentityUserWithAccount>> GetUsersInRoleAsync(string roleName)
         {
             var sql = _selectSql +
                 $"inner join {TN("UserRoles")} ur on u.{CN("Id")} = ur.{CN("UserId")} " +
                 $"inner join {TN("Roles")} r on ur.{CN("RoleId")} = r.{CN("Id")} " +
                 $"where r.{CN("Name")} = @RoleName;";
-            var users = await DbConnection.QueryAsync<AppIdentityUser>(sql, new { RoleName = roleName });
+            var users = await DbConnection.QueryAsync<AppIdentityUserWithAccount>(sql, new { RoleName = roleName });
             return users;
         }
 
         /// <inheritdoc />
-        public override async Task<IEnumerable<AppIdentityUser>> GetUsersForClaimAsync(Claim claim)
+        public override async Task<IEnumerable<AppIdentityUserWithAccount>> GetUsersForClaimAsync(Claim claim)
         {
             var sql = _selectSql +
                 $"inner join {TN("UserClaims")} uc on u.{CN("Id")} = uc.{CN("UserId")} " +
                 $"where uc.{CN("ClaimType")} = @ClaimType and uc.{CN("ClaimValue")} = @ClaimValue;";
-            var users = await DbConnection.QueryAsync<AppIdentityUser>(sql, new
+            var users = await DbConnection.QueryAsync<AppIdentityUserWithAccount>(sql, new
             {
                 ClaimType = claim.Type,
                 ClaimValue = claim.Value
