@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Logging;
-using Netopes.Core.Helpers.Email;
+using Netopes.Core.Abstraction.Settings;
+using Netopes.Core.Helpers.Services;
 
 namespace Netopes.Identity
 {
