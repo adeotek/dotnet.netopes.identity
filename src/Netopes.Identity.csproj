@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <OutputType>Library</OutputType>
     <PackageId>Netopes.Identity</PackageId>
     <PackageTags>netopes,identity</PackageTags>
@@ -11,24 +11,24 @@
     <Company>AdeoTEK Software SRL</Company>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>Copyright © AdeoTEK Software SRL 2021</Copyright>
-    <AssemblyVersion>1.0.4.14</AssemblyVersion>
-    <FileVersion>1.0.4.14</FileVersion>
-    <Version>1.0.4</Version>
+    <AssemblyVersion>1.6.0.15</AssemblyVersion>
+    <FileVersion>1.6.0.15</FileVersion>
+    <Version>1.6.0</Version>
     <PackageProjectUrl>https://github.com/adeotek/dotnet.netopes.identity/</PackageProjectUrl>
     <PackageLicense>https://github.com/adeotek/dotnet.netopes.identity/blob/main/README.md</PackageLicense>
     <RepositoryUrl>https://github.com/adeotek/dotnet.netopes.identity/</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageIcon>PackageIcon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageVersion>1.0.4</PackageVersion>
+    <PackageVersion>1.6.0</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.90" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.6" />
-    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="5.0.6" />
-    <PackageReference Include="NETopes.Core.Helpers" Version="1.0.3" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="all">
+    <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.0" />
+    <PackageReference Include="NETopes.Core.Helpers" Version="1.6.0" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
