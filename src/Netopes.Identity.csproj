@@ -11,23 +11,23 @@
     <Company>AdeoTEK Software SRL</Company>
     <Authors>George Benjamin-Schonberger</Authors>
     <Copyright>Copyright © AdeoTEK Software SRL 2021</Copyright>
-    <AssemblyVersion>1.6.1.18</AssemblyVersion>
-    <FileVersion>1.6.1.18</FileVersion>
-    <Version>1.6.1</Version>
+    <AssemblyVersion>1.6.2.19</AssemblyVersion>
+    <FileVersion>1.6.2.19</FileVersion>
+    <Version>1.6.2</Version>
     <PackageProjectUrl>https://github.com/adeotek/dotnet.netopes.identity/</PackageProjectUrl>
     <PackageLicense>https://github.com/adeotek/dotnet.netopes.identity/blob/main/README.md</PackageLicense>
     <RepositoryUrl>https://github.com/adeotek/dotnet.netopes.identity/</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageIcon>PackageIcon.png</PackageIcon>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageVersion>1.6.1</PackageVersion>
+    <PackageVersion>1.6.2</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Identity.Stores" Version="6.0.0" />
-    <PackageReference Include="NETopes.Core.Helpers" Version="1.6.0" />
+    <PackageReference Include="NETopes.Core.Helpers" Version="1.6.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="all">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
