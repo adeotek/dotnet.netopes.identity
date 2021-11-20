@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Dapper;
+using Microsoft.AspNetCore.Identity;
+using Netopes.Core.Helpers.Database;
+using Netopes.Identity.Abstract;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Dapper;
-using Netopes.Identity.Abstract;
-using Microsoft.AspNetCore.Identity;
-using Netopes.Core.Helpers.Database;
 
 namespace Netopes.Identity.Data
 {
@@ -36,7 +36,7 @@ namespace Netopes.Identity.Data
             var sql = "select * " +
                                $"from {TN("UserLogins")} " +
                                $"where {CN("UserId")} = {GID("UserId")};";
-            var userLogins = await DbConnection.QueryAsync<TUserLogin>(sql, new {UserId = userId});
+            var userLogins = await DbConnection.QueryAsync<TUserLogin>(sql, new { UserId = userId });
             return userLogins;
         }
 

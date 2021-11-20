@@ -1,5 +1,5 @@
-﻿using System.Data;
-using Netopes.Core.Helpers.Database;
+﻿using Netopes.Core.Helpers.Database;
+using System.Data;
 
 namespace Netopes.Identity.Data
 {
@@ -50,7 +50,7 @@ namespace Netopes.Identity.Data
         {
             var escapeChar = string.IsNullOrEmpty(DbObjectsEscapeChar) ? string.Empty : DbObjectsEscapeChar;
             var schema = string.IsNullOrEmpty(DbSchema) ? string.Empty : $"{escapeChar}{DbSchema}{escapeChar}.";
-            return string.IsNullOrEmpty(DbObjectsPrefix) 
+            return string.IsNullOrEmpty(DbObjectsPrefix)
                 ? $"{schema}{escapeChar}{name}{escapeChar}"
                 : $"{schema}{escapeChar}{DbObjectsPrefix}{name}{escapeChar}";
         }

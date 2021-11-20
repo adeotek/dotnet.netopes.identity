@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using Netopes.Core.Helpers.Extensions;
+using Netopes.Identity.Abstract;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using Netopes.Identity.Abstract;
-using Microsoft.AspNetCore.Identity;
-using Netopes.Core.Helpers.Extensions;
 
 namespace Netopes.Identity.Stores
 {

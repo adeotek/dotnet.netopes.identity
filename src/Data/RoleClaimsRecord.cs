@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Dapper;
+using Microsoft.AspNetCore.Identity;
+using Netopes.Core.Helpers.Database;
+using Netopes.Identity.Abstract;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Dapper;
-using Netopes.Identity.Abstract;
-using Microsoft.AspNetCore.Identity;
-using Netopes.Core.Helpers.Database;
 
 namespace Netopes.Identity.Data
 {
@@ -34,7 +34,7 @@ namespace Netopes.Identity.Data
             var sql = "select * " +
                         $"from {TN("RoleClaims")} " +
                         $"where {CN("RoleId")} = {GID("RoleId")};";
-            var roleClaims = await DbConnection.QueryAsync<TRoleClaim>(sql, new {RoleId = roleId});
+            var roleClaims = await DbConnection.QueryAsync<TRoleClaim>(sql, new { RoleId = roleId });
             return roleClaims;
         }
     }

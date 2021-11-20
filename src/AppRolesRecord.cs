@@ -1,7 +1,7 @@
-﻿using System;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Netopes.Core.Helpers.Database;
 using Netopes.Identity.Data;
+using System;
 
 namespace Netopes.Identity
 {

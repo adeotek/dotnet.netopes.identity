@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Dapper;
+using Microsoft.AspNetCore.Identity;
+using Netopes.Core.Helpers.Database;
+using Netopes.Identity.Abstract;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Threading.Tasks;
-using Dapper;
-using Netopes.Identity.Abstract;
-using Microsoft.AspNetCore.Identity;
-using Netopes.Core.Helpers.Database;
 
 namespace Netopes.Identity.Data
 {

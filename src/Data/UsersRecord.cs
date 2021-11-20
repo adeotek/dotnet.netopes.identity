@@ -1,13 +1,13 @@
-﻿using System;
+﻿using Dapper;
+using Microsoft.AspNetCore.Identity;
+using Netopes.Core.Helpers.Database;
+using Netopes.Identity.Abstract;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Dapper;
-using Netopes.Identity.Abstract;
-using Microsoft.AspNetCore.Identity;
-using Netopes.Core.Helpers.Database;
 
 namespace Netopes.Identity.Data
 {
@@ -71,7 +71,7 @@ namespace Netopes.Identity.Data
             var sql = "delete " +
                 $"from {TN("Users")} " +
                 $"where {CN("Id")} = {GID("Id")};";
-            var rowsDeleted = await DbConnection.ExecuteAsync(sql, new {Id = userId});
+            var rowsDeleted = await DbConnection.ExecuteAsync(sql, new { Id = userId });
             return rowsDeleted == 1;
         }
 
@@ -81,7 +81,7 @@ namespace Netopes.Identity.Data
             var sql = "select * " +
                 $"from {TN("Users")} " +
                 $"where {CN("Id")} = {GID("Id")};";
-            var user = await DbConnection.QuerySingleOrDefaultAsync<TUser>(sql, new {Id = userId});
+            var user = await DbConnection.QuerySingleOrDefaultAsync<TUser>(sql, new { Id = userId });
             return user;
         }
 
@@ -92,7 +92,7 @@ namespace Netopes.Identity.Data
                 $"from {TN("Users")} " +
                 $"where {CN("NormalizedUserName")} = @NormalizedUserName;";
             var user = await DbConnection.QuerySingleOrDefaultAsync<TUser>(sql,
-                new {NormalizedUserName = normalizedUserName});
+                new { NormalizedUserName = normalizedUserName });
             return user;
         }
 
@@ -103,7 +103,7 @@ namespace Netopes.Identity.Data
                                    $"from {TN("Users")} " +
                                    $"where {CN("NormalizedEmail")} = @NormalizedEmail;";
             var user = await DbConnection.QuerySingleOrDefaultAsync<TUser>(command,
-                new {NormalizedEmail = normalizedEmail});
+                new { NormalizedEmail = normalizedEmail });
             return user;
         }
 
@@ -161,7 +161,7 @@ namespace Netopes.Identity.Data
                 var deleteClaimsSql = "delete " +
                                                $"from {TN("UserClaims")} " +
                                                $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteClaimsSql, new {UserId = user.Id}, transaction);
+                await DbConnection.ExecuteAsync(deleteClaimsSql, new { UserId = user.Id }, transaction);
                 var insertClaimsSql =
                     $"insert into {TN("UserClaims")} ({CN("UserId")}, {CN("ClaimType")}, {CN("ClaimValue")}) " +
                     $"values ({GID("UserId")}, @ClaimType, @ClaimValue);";
@@ -178,7 +178,7 @@ namespace Netopes.Identity.Data
                 var deleteRolesSql = "delete " +
                                               $"from {TN("UserRoles")} " +
                                               $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteRolesSql, new {UserId = user.Id}, transaction);
+                await DbConnection.ExecuteAsync(deleteRolesSql, new { UserId = user.Id }, transaction);
                 var insertRolesSql = $"insert into {TN("UserRoles")} ({CN("UserId")}, {CN("RoleId")}) " +
                                               $"values ({GID("UserId")}, {GID("RoleId")});";
                 await DbConnection.ExecuteAsync(insertRolesSql, roles.Select(x => new
@@ -193,7 +193,7 @@ namespace Netopes.Identity.Data
                 var deleteLoginsSql = "delete " +
                                                $"from {TN("UserLogins")} " +
                                                $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteLoginsSql, new {UserId = user.Id}, transaction);
+                await DbConnection.ExecuteAsync(deleteLoginsSql, new { UserId = user.Id }, transaction);
                 var insertLoginsSql =
                     $"insert into {TN("UserLogins")} ({CN("LoginProvider")}, {CN("ProviderKey")}, {CN("ProviderDisplayName")}, {CN("UserId")}) " +
                     $"values (@LoginProvider, @ProviderKey, @ProviderDisplayName, {GID("UserId")});";
@@ -211,7 +211,7 @@ namespace Netopes.Identity.Data
                 var deleteTokensSql = "delete " +
                                                $"from {TN("UserTokens")} " +
                                                $"where {CN("UserId")} = {GID("UserId")};";
-                await DbConnection.ExecuteAsync(deleteTokensSql, new {UserId = user.Id}, transaction);
+                await DbConnection.ExecuteAsync(deleteTokensSql, new { UserId = user.Id }, transaction);
                 var insertTokensSql =
                     $"insert into {TN("UserTokens")} ({CN("UserId")}, {CN("LoginProvider")}, {CN("Name")}, {CN("Value")}) " +
                     $"values ({GID("UserId")}, @LoginProvider, @Name, @Value);";
@@ -245,7 +245,7 @@ namespace Netopes.Identity.Data
                                $"inner join {TN("UserRoles")} ur on u.{CN("Id")} = ur.{CN("UserId")} " +
                                $"inner join {TN("Roles")} r on ur.{CN("RoleId")} = r.{CN("Id")} " +
                                $"where r.{CN("Name")} = @RoleName;";
-            var users = await DbConnection.QueryAsync<TUser>(sql, new {RoleName = roleName});
+            var users = await DbConnection.QueryAsync<TUser>(sql, new { RoleName = roleName });
             return users;
         }
 

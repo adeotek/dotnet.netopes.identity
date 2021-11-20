@@ -1,6 +1,6 @@
-﻿using System.Data;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Netopes.Core.Helpers.Database;
+using System.Data;
 
 namespace Netopes.Identity
 {

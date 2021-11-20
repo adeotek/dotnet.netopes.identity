@@ -7,7 +7,7 @@ namespace Netopes.Identity
 {
     public class IdentityEmailSender : EmailSender, IEmailSender
     {
-        public IdentityEmailSender(EmailSettings emailSettings, ILogger<IdentityEmailSender> logger) 
+        public IdentityEmailSender(EmailSettings emailSettings, ILogger<IdentityEmailSender> logger)
             : base(emailSettings, logger)
         {
         }

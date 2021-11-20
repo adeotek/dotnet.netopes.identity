@@ -1,13 +1,13 @@
-﻿using System;
-using System.Reflection;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Netopes.Core.Helpers.Database;
 using Netopes.Identity;
 using Netopes.Identity.Abstract;
 using Netopes.Identity.Data;
 using Netopes.Identity.Stores;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Netopes.Core.Helpers.Database;
+using System;
+using System.Reflection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IdentityBuilder AddDapperStores(this IdentityBuilder builder, IDbConnectionFactory dbConnectionFactory,
             Action<DapperStoreOptions> configureAction = null)
         {
-            AddStores(builder.Services, builder.UserType, builder.RoleType, dbConnectionFactory,  configureAction);
+            AddStores(builder.Services, builder.UserType, builder.RoleType, dbConnectionFactory, configureAction);
             return builder;
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddScoped(typeof(IDbConnectionFactory), x =>
             {
                 var dbConnectionFactoryInstance =
-                    (IDbConnectionFactory) Activator.CreateInstance(dbConnectionContextOptions.DbConnectionFactory
+                    (IDbConnectionFactory)Activator.CreateInstance(dbConnectionContextOptions.DbConnectionFactory
                         .GetType());
                 dbConnectionFactoryInstance.ConnectionString = dbConnectionContextOptions.ConnectionString;
                 return dbConnectionFactoryInstance;

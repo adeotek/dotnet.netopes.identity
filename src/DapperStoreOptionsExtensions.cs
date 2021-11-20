@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
 using Netopes.Identity;
 using Netopes.Identity.Abstract;
 using Netopes.Identity.Data;
-using Microsoft.AspNetCore.Identity;
+using System;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

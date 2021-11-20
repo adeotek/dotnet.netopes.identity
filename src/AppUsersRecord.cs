@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Dapper;
+﻿using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Netopes.Core.Helpers.Database;
 using Netopes.Identity.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Netopes.Identity
 {
@@ -93,7 +93,7 @@ namespace Netopes.Identity
         /// <inheritdoc />
         public override async Task<AppIdentityUser> FindByIdAsync(Guid userId)
         {
-            var sql = _selectSql + 
+            var sql = _selectSql +
                 $"where u.{CN("Id")} = {GID("Id")};";
             var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUser>(sql, new { Id = userId.ToString() });
             return user;
@@ -102,7 +102,7 @@ namespace Netopes.Identity
         /// <inheritdoc />
         public override async Task<AppIdentityUser> FindByNameAsync(string normalizedUserName)
         {
-            var sql = _selectSql + 
+            var sql = _selectSql +
                 $"where u.{CN("NormalizedUsername")} = @NormalizedUserName;";
             var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUser>(sql,
                 new { NormalizedUserName = normalizedUserName });
@@ -142,7 +142,7 @@ namespace Netopes.Identity
                 $"{CN("LockoutEnabled")} = @LockoutEnabled, " +
                 $"{CN("AccessFailedCount")} = @AccessFailedCount " +
                 $"where {CN("Id")} = {GID("Id")};";
-            
+
             using var transaction = DbConnection.BeginTransaction();
             await DbConnection.ExecuteAsync(updateUserSql, new
             {

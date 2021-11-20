@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
+using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
 
 namespace Netopes.Identity.Blazor
 {
@@ -26,7 +26,7 @@ namespace Netopes.Identity.Blazor
             {
                 throw new UserAuthenticationException(e.Message, "UserNotFound");
             }
-            
+
             if (!await signInManager.UserManager.CheckPasswordAsync(user, password))
             {
                 throw new UserAuthenticationException("Invalid user password!", "InvalidPassword");

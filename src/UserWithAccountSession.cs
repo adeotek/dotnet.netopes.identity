@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Netopes.Core.Helpers.Services;
+using System.Threading.Tasks;
 
 namespace Netopes.Identity
 {
@@ -17,9 +17,9 @@ namespace Netopes.Identity
             _authenticationStateProvider = authenticationStateProvider;
             _userManager = userManager;
         }
-        
+
         public AppIdentityUserWithAccount CurrentIdentityUser { get; protected set; }
-        
+
         public override async Task LoadStateAsync()
         {
             await GetAuthenticationStateAsync();

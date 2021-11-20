@@ -1,46 +1,30 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using Dapper;
+﻿using Dapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Netopes.Core.Helpers.Database;
 using Netopes.Identity.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Netopes.Identity
 {
     public class AppUsersWithAccountRecord : UsersRecord<AppIdentityUserWithAccount, Guid, IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>, IdentityUserToken<Guid>>
     {
         private readonly ILogger<AppUsersWithAccountRecord> _logger;
-        private readonly string _selectSql;
 
         public AppUsersWithAccountRecord(IDbConnectionFactory dbConnectionFactory, ILogger<AppUsersWithAccountRecord> logger) : base(dbConnectionFactory)
         {
             _logger = logger;
-            _selectSql = $"select u.*, " +
-                    $"a.{CN("CountryId")}, " +
-                    $"a.{CN("CompanyName")}, " +
-                    $"a.{CN("TaxCode")}, " +
-                    $"a.{CN("City")}, " +
-                    $"a.{CN("StreetAddress")}, " +
-                    $"a.{CN("AddressDetails")}, " +
-                    $"a.{CN("PostalCode")}, " +
-                    $"a.{CN("PhoneNumber")}, " +
-                    $"a.{CN("State")} as EntityState " +
-                    $"from {TN("Users")} u " +
-                    $"inner join {TN("Accounts")} a on u.{CN("AccountId")} = a.{CN("Id")} ";
         }
 
         public override async Task<bool> CreateAsync(AppIdentityUserWithAccount user)
         {
             var createEntitySql = $"insert into {TN("Accounts")} (" +
                 $"{CN("Id")}, " +
-                $"{CN("CountryId")}, " +
                 $"{CN("Email")}," +
-                $"{CN("CompanyName")}, " +
-                $"{CN("TaxCode")}, " +
                 $"{CN("Region")}, " +
                 $"{CN("City")}," +
                 $"{CN("StreetAddress")}, " +
@@ -48,24 +32,21 @@ namespace Netopes.Identity
                 $"{CN("PostalCode")}, " +
                 $"{CN("PhoneNumber")}, " +
                 $"{CN("State")}) " +
-                $"{CN("IsMaster")}) " +
-                $"values ({GID("Id")}, {GID("CountryId")}, " +
-                "@Email, @CompanyName, @TaxCode, @Region, @City, @StreetAddress, @AddressDetails, @PostalCode, @PhoneNumber, @State);";
+                $"{CN("CreatedAt")}) " +
+                $"values ({GID("Id")}, " +
+                "@Email, @Region, @City, @StreetAddress, @AddressDetails, @PostalCode, @PhoneNumber, @State, @CreatedAt);";
             var createEntityParams = new
             {
                 Id = user.AccountId.ToString(),
-                CountryId = user.CountryId.ToString(),
                 user.Email,
-                user.CompanyName,
-                user.TaxCode,
-                user.Region,
-                user.City,
-                user.StreetAddress,
-                user.AddressDetails,
-                user.PostalCode,
+                user.Account.Region,
+                user.Account.City,
+                user.Account.StreetAddress,
+                user.Account.AddressDetails,
+                user.Account.PostalCode,
                 user.PhoneNumber,
-                user.State,
-                user.IsMasterAccount
+                State = 1,
+                user.CreatedAt
             };
 
             var createUserSql = $"insert into {TN("Users")} ( " +
@@ -89,10 +70,9 @@ namespace Netopes.Identity
                 $"{CN("LockoutEnd")}, " +
                 $"{CN("LockoutEnabled")}, " +
                 $"{CN("AccessFailedCount")}) " +
-                $"select first 1 {GID("Id")}, {GID("AccountId")}, @Email, @FirstName, @LastName, @UserName, @NormalizedUserName, @PasswordHash, " +
-                $"coalesce(@CultureInfo,(case when c.{CN("Code2")} = 'RO' then 'ro' else 'en' end)), " +
-                "@State, @EmailConfirmed, @SecurityStamp, @ConcurrencyStamp, @PhoneNumber, @PhoneNumberConfirmed, @TwoFactorEnabled, @LockoutEnd, @LockoutEnabled, @AccessFailedCount " +
-                $"from {TN("Countries")} c where c.{CN("Id")} = {GID("CountryId")};";
+                $"values ({GID("Id")}, {GID("AccountId")}, @Email, @FirstName, @LastName, @UserName, @NormalizedUserName, @PasswordHash, " +
+                $"coalesce(@CultureInfo,'en'), " +
+                "@State, @EmailConfirmed, @SecurityStamp, @ConcurrencyStamp, @PhoneNumber, @PhoneNumberConfirmed, @TwoFactorEnabled, @LockoutEnd, @LockoutEnabled, @AccessFailedCount);";
             var createUserParams = new
             {
                 Id = user.Id.ToString(),
@@ -112,10 +92,9 @@ namespace Netopes.Identity
                 user.PhoneNumber,
                 user.PhoneNumberConfirmed,
                 user.TwoFactorEnabled,
-                LockoutEnd = user.LockoutEndForDb,
+                LockoutEnd = user.LockoutEnd?.DateTime,
                 user.LockoutEnabled,
-                user.AccessFailedCount,
-                CountryId = user.CountryId.ToString()
+                user.AccessFailedCount
             };
 
             using var transaction = DbConnection.BeginTransaction();
@@ -145,32 +124,36 @@ namespace Netopes.Identity
             return rowsDeleted == 1;
         }
 
+        public async Task<AppAccount> GetAppAccountById(Guid id)
+        {
+            var sql = $"select a.* from {TN("Accounts")} a where a.{CN("Id")} = {GID("Id")};";
+            return await DbConnection.QuerySingleOrDefaultAsync<AppAccount>(sql, new { Id = id.ToString() });
+        }
+
         /// <inheritdoc />
         public override async Task<AppIdentityUserWithAccount> FindByIdAsync(Guid userId)
         {
-            var sql = _selectSql + 
-                $"where u.{CN("Id")} = {GID("Id")};";
+            var sql = $"select u.* from {TN("Users")} u where u.{CN("Id")} = {GID("Id")};";
             var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql, new { Id = userId.ToString() });
+            user.Account = await GetAppAccountById(user.AccountId);
             return user;
         }
 
         /// <inheritdoc />
         public override async Task<AppIdentityUserWithAccount> FindByNameAsync(string normalizedUserName)
         {
-            var sql = _selectSql + 
-                $"where u.{CN("NormalizedUsername")} = @NormalizedUserName;";
-            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql,
-                new { NormalizedUserName = normalizedUserName });
+            var sql = $"select u.* from {TN("Users")} u where u.{CN("NormalizedUsername")} = @NormalizedUserName;";
+            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql, new { NormalizedUserName = normalizedUserName });
+            user.Account = await GetAppAccountById(user.AccountId);
             return user;
         }
 
         /// <inheritdoc />
         public override async Task<AppIdentityUserWithAccount> FindByEmailAsync(string normalizedEmail)
         {
-            var sql = _selectSql +
-                $"where u.{CN("Email")} = @NormalizedEmail;";
-            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql,
-                new { NormalizedEmail = normalizedEmail });
+            var sql = $"select u.* from {TN("Users")} u where u.{CN("Email")} = @NormalizedEmail;";
+            var user = await DbConnection.QuerySingleOrDefaultAsync<AppIdentityUserWithAccount>(sql, new { NormalizedEmail = normalizedEmail });
+            user.Account = await GetAppAccountById(user.AccountId);
             return user;
         }
 
@@ -197,7 +180,7 @@ namespace Netopes.Identity
                 $"{CN("LockoutEnabled")} = @LockoutEnabled, " +
                 $"{CN("AccessFailedCount")} = @AccessFailedCount " +
                 $"where {CN("Id")} = {GID("Id")};";
-            
+
             using var transaction = DbConnection.BeginTransaction();
             await DbConnection.ExecuteAsync(updateUserSql, new
             {
@@ -215,7 +198,7 @@ namespace Netopes.Identity
                 user.PhoneNumber,
                 user.PhoneNumberConfirmed,
                 user.TwoFactorEnabled,
-                LockoutEnd = user.LockoutEndForDb,
+                LockoutEnd = user.LockoutEnd?.DateTime,
                 user.LockoutEnabled,
                 user.AccessFailedCount,
                 user.Id
@@ -305,18 +288,27 @@ namespace Netopes.Identity
         /// <inheritdoc />
         public override async Task<IEnumerable<AppIdentityUserWithAccount>> GetUsersInRoleAsync(string roleName)
         {
-            var sql = _selectSql +
+            var sql = $"select u.* from {TN("Users")} u " +
                 $"inner join {TN("UserRoles")} ur on u.{CN("Id")} = ur.{CN("UserId")} " +
                 $"inner join {TN("Roles")} r on ur.{CN("RoleId")} = r.{CN("Id")} " +
                 $"where r.{CN("Name")} = @RoleName;";
             var users = await DbConnection.QueryAsync<AppIdentityUserWithAccount>(sql, new { RoleName = roleName });
+            if(!users.Any())
+            {
+                return users;
+            }
+
+            foreach (var user in users)
+            {
+                user.Account = await GetAppAccountById(user.AccountId);
+            }
             return users;
         }
 
         /// <inheritdoc />
         public override async Task<IEnumerable<AppIdentityUserWithAccount>> GetUsersForClaimAsync(Claim claim)
         {
-            var sql = _selectSql +
+            var sql = $"select u.* from {TN("Users")} u " +
                 $"inner join {TN("UserClaims")} uc on u.{CN("Id")} = uc.{CN("UserId")} " +
                 $"where uc.{CN("ClaimType")} = @ClaimType and uc.{CN("ClaimValue")} = @ClaimValue;";
             var users = await DbConnection.QueryAsync<AppIdentityUserWithAccount>(sql, new
@@ -324,6 +316,16 @@ namespace Netopes.Identity
                 ClaimType = claim.Type,
                 ClaimValue = claim.Value
             });
+
+            if (!users.Any())
+            {
+                return users;
+            }
+
+            foreach (var user in users)
+            {
+                user.Account = await GetAppAccountById(user.AccountId);
+            }
             return users;
         }
     }
